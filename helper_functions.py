@@ -1,20 +1,40 @@
+import warnings
+warnings.filterwarnings('ignore')
+import itertools
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+import matplotlib.pyplot as plt
+from matplotlib.pylab import rcParams
+import math
+import tensorflow as tf
+from tensorflow import keras
+from keras import layers
+from keras.utils import Sequence
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.layers import LSTM
+from keras.layers import Dropout
+from keras.layers import *
+from keras.callbacks import EarlyStopping
+from datetime import timedelta
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error as MSE
+from statsmodels.tsa.seasonal import seasonal_decompose
+import seaborn as sns
+sns.set_style('darkgrid')
+from statsmodels.graphics.tsaplots import plot_acf
+from statsmodels.graphics.tsaplots import plot_pacf
+
+
+
 def acf_pacf(series, alags=120, plags=22):
     '''
+    Input: Time Series, and the number of lags for Autocorrelation 
+    and Partial Autocorrelation.
     
-    
+    Outputs: ACF and PACF plots for time series
     '''
-    import warnings
-    warnings.filterwarnings('ignore')
-    import pandas as pd
-    import numpy as np
-    import statsmodels.api as sm
-    import matplotlib.pyplot as plt
-    from sklearn.preprocessing import MinMaxScaler
-    from sklearn.metrics import mean_squared_error as MSE
-    from statsmodels.tsa.seasonal import seasonal_decompose
-    from statsmodels.graphics.tsaplots import plot_pacf
-    from statsmodels.graphics.tsaplots import plot_acf
-
     
     #Create figure
     fig,(ax1,ax2) = plt.subplots(2,1,figsize=(13,8))
@@ -33,21 +53,11 @@ def decompose_time_series(series):
     Outputs: 
         Decomposition plot
     """
-    import warnings
-    warnings.filterwarnings('ignore')
-    import itertools
-    import pandas as pd
-    import numpy as np
-    import statsmodels.api as sm
-    import matplotlib.pyplot as plt
-    from matplotlib.pylab import rcParams
-    from sklearn.preprocessing import MinMaxScaler
-    from sklearn.metrics import mean_squared_error as MSE
-    from statsmodels.tsa.seasonal import seasonal_decompose
     
-    fig = plt.figure(figsize=(20,10))
     result = seasonal_decompose(series)
-    result.plot()
+    fig = result.plot()
+    fig.set_figheight(10)
+    fig.set_figwidth(20)
     plt.show();
 
 def train_test(df):
@@ -61,18 +71,6 @@ def train_test(df):
     
     Output: Train and Test sets for Time Series Analysis
     '''
-    import warnings
-    warnings.filterwarnings('ignore')
-    import itertools
-    import pandas as pd
-    import numpy as np
-    import statsmodels.api as sm
-    import matplotlib.pyplot as plt
-    from matplotlib.pylab import rcParams
-    from datetime import timedelta
-    from sklearn.preprocessing import MinMaxScaler
-    from sklearn.metrics import mean_squared_error as MSE
-    from statsmodels.tsa.seasonal import seasonal_decompose
     
     # Reset Index
     temp = df.reset_index()
@@ -105,17 +103,6 @@ def preprocess_data(df, column):
     
     Returns: Training, Validation, and Test sets
     '''
-    import warnings
-    warnings.filterwarnings('ignore')
-    import itertools
-    import pandas as pd
-    import numpy as np
-    import statsmodels.api as sm
-    import matplotlib.pyplot as plt
-    from matplotlib.pylab import rcParams
-    from sklearn.preprocessing import MinMaxScaler
-    from sklearn.metrics import mean_squared_error as MSE
-    from statsmodels.tsa.seasonal import seasonal_decompose
     
     # Instantiate scaler
     scaler = MinMaxScaler(feature_range=(0, 1))
@@ -142,22 +129,13 @@ def preprocess_data(df, column):
 
 def create_dataset(dataset, look_back=1):
     '''
+    Input: dataset and the number of days to look back (lags).
     
+    Function creates lists for X and y. The function iterates through the 
+    dataset and appends the lists such that X = t and y = t + look_back
     
+    Returns: numpy arrays for X and y
     '''
-    
-    import warnings
-    warnings.filterwarnings('ignore')
-    import itertools
-    import pandas as pd
-    import numpy as np
-    import statsmodels.api as sm
-    import matplotlib.pyplot as plt
-    from matplotlib.pylab import rcParams
-    from datetime import timedelta
-    from sklearn.preprocessing import MinMaxScaler
-    from sklearn.metrics import mean_squared_error as MSE
-    from statsmodels.tsa.seasonal import seasonal_decompose
     
     X, y = [], []
     for i in range(len(dataset)-look_back-1):
@@ -166,21 +144,16 @@ def create_dataset(dataset, look_back=1):
         y.append(dataset[i + look_back, 0])
     return np.array(X), np.array(y)
 
-def fit_model(series_train, series_test, pdq=(1,0,1),pdqs=(0,0,0,1)):
+def fit_model(series_train, pdq=(1,0,1),pdqs=(0,0,0,1)):
     '''
+    Input: a training and test set that are in Series format, the order, and 
+    seasonal order for Time Series modeling
     
+    Function compiles the model and fits it to the training set. Then prints 
+    the model summary and plots the diagnostic report.
+    
+    Returns: fit model results
     '''
-    import warnings
-    warnings.filterwarnings('ignore')
-    import itertools
-    import pandas as pd
-    import numpy as np
-    import statsmodels.api as sm
-    import matplotlib.pyplot as plt
-    from matplotlib.pylab import rcParams
-    from sklearn.preprocessing import MinMaxScaler
-    from sklearn.metrics import mean_squared_error as MSE
-    from statsmodels.tsa.seasonal import seasonal_decompose
     
     model = sm.tsa.statespace.SARIMAX(series_train,order=pdq,seasonal_order=pdqs)
     results = model.fit()
@@ -189,25 +162,23 @@ def fit_model(series_train, series_test, pdq=(1,0,1),pdqs=(0,0,0,1)):
     print(results.summary())
     results.plot_diagnostics(figsize=(11,8))
     plt.show();
-    return series_train, series_test, results
+    return results
 
 
 def test_RMSE(series_train, series_test, pdq, pdqs, display=True):
     '''
+    Input: training and test set, the order, and seasonal order for ARIMA 
+    modeling.  
     
+    Creates list of predictions by fitting the model to the training values, 
+    creating a forecast and recording the predicted values.  Making use of 
+    Scikit Learn's MSE function, the test and prediction values are passed 
+    through as arguements and then the function prints the square root of the 
+    result.
+    
+    Outputs: RMSE for model and plot of Test predictions against actual values 
+    from model.
     '''
-    import warnings
-    warnings.filterwarnings('ignore')
-    import itertools
-    import pandas as pd
-    import numpy as np
-    import statsmodels.api as sm
-    import matplotlib.pyplot as plt
-    from matplotlib.pylab import rcParams
-    from sklearn.preprocessing import MinMaxScaler
-    from sklearn.metrics import mean_squared_error as MSE
-    from statsmodels.tsa.seasonal import seasonal_decompose
-    
     
     X_train = series_train.values
     X_test = series_test.values
@@ -233,26 +204,100 @@ def test_RMSE(series_train, series_test, pdq, pdqs, display=True):
 
 def train_RMSE(train, results, display = True):
     '''
+    Input: training set and results of fitted model.  
     
+    Creates list of predictions by use of model_results.predict() function. 
+    Making use of Scikit Learn's MSE function, the test and prediction values 
+    are passed through as arguements and then the function prints the square 
+    root of the product.
+    
+    Outputs: RMSE for model and plot of train set predictions against actual 
+    values from model.
     '''
-    import warnings
-    warnings.filterwarnings('ignore')
-    import itertools
-    import pandas as pd
-    import numpy as np
-    import statsmodels.api as sm
-    import matplotlib.pyplot as plt
-    from matplotlib.pylab import rcParams
-    from sklearn.preprocessing import MinMaxScaler
-    from sklearn.metrics import mean_squared_error as MSE
     
     train_pred = results.predict(-56)
     rmse = np.sqrt(MSE(train[-56:],train_pred))
     print(f'SARIMA model RMSE on train data: %.5f' % rmse)
     if display:
         plt.figure(figsize=(13,6))
-        train[:].plot(label='Actual',color='b')
-        train_pred.plot(label='Predicted',color='r')
+        plt.plot(train[:], label='Actual',color='b')
+        plt.plot(train_pred, label='Predicted',color='r')
         plt.legend(loc='best')
-        plt.title('Actual Train Data vs. Predicted Returns')
+        plt.title('Actual Train Data vs. Predictions')
         plt.show();
+
+
+def LSTM_obtain_error(model, X_train, X_test, y_train, y_test):
+    '''
+    Input: fitted LSTM model
+    
+    Function creates prediction on 'X_train' and 'X_test' and inverts the 
+    MinMax scaling so that the values are on the correct scale.
+    
+    Lastly, the function prints out the Train and Test Mean Absolute Errors as 
+    well as their Root Mean Squared Errors.
+    
+    Returns Train
+    '''
+    
+    scaler = MinMaxScaler(feature_range=(0,1))
+    
+    train_predict = model.predict(X_train)
+    test_predict = model.predict(X_test)
+
+    # Invert predictions to original scale for interpretation
+    train_predict = scaler.inverse_transform(train_predict)
+    y_train_rescaled = scaler.inverse_transform([y_train])
+    test_predict = scaler.inverse_transform(test_predict)
+    y_test_rescaled = scaler.inverse_transform([y_test])
+
+    print('Train Mean Absolute Error:', MAE(y_train_rescaled[0], 
+                                            train_predict[:,0]))
+
+    print('Train Root Mean Squared Error:',np.sqrt(MSE(y_train_rescaled[0], 
+                                                   train_predict[:,0])))
+    print('Test Mean Absolute Error:', MAE(y_test_rescaled[0], 
+                                           test_predict[:,0]))
+
+    print('Test Root Mean Squared Error:',np.sqrt(MSE(y_test_rescaled[0], 
+                                                  test_predict[:,0])))
+    
+    
+def plot_loss(history):
+    '''
+    Input: historical object for neural network
+    Output: plot of the model loss.
+    '''
+    plt.figure(figsize=(10, 5))
+    plt.plot(history.history['loss'], label='Train Loss')
+    plt.plot(history.history['val_loss'], label='Validation Loss')
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epochs')
+    plt.legend(loc='upper right')
+    plt.show();
+    
+    
+    
+def LSTM_prediction_plot(test_predict, y_test_rescaled): 
+    '''
+    Input: LSTM model
+    
+    Function inverts the MinMax scaling of the various training and test sets, 
+    and plots the predictions.
+    
+    Output: Plot
+    '''
+    aa=[x for x in range(11)]
+    plt.figure(figsize=(8,4))
+    plt.plot(aa, y_test_rescaled[0][:11], marker='.', label="actual")
+    plt.plot(aa, test_predict[:,0][1:12], '-', label="prediction")
+    # plt.tick_params(left=False, labelleft=True) #remove ticks
+    plt.tight_layout()
+    sns.despine(top=True)
+    plt.subplots_adjust(left=0.07)
+    plt.ylabel('Increase in COVID-19 Cases', size=15)
+    plt.xlabel('Time step', size=15)
+    plt.title('Predicted Increase in Covid Cases vs. Actual Data')
+    plt.legend(fontsize=15)
+    plt.show();
