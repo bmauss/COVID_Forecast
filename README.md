@@ -14,7 +14,7 @@ The secondary objective:
 
 # Obtaining Data
 
-COVID-19 is a highly contagious respiratory infection.  Symptoms vary by type and severity depending on immune system strength and age.  Despite this, most people generally report flu-like symptoms.  While contracting the illness can happen as remotely as contact with an object touched by a person with the sickness, the primary mode of transmission is from person-to-person contact, followed by airborne germs. 
+COVID-19 is a highly contagious respiratory infection.  Symptoms vary by type and severity depending on immune system strength and age.  Despite this, most people generally report flu-like symptoms.  While contracting the illness can happen as remotely as contact with an object touched by a person with the sickness, the primary mode of transmission is from person-to-person contact, as well as by airborne germs. 
 
 While everyone is at risk of contracting the illness, it is primarily the elderly and people with compromised immune systems that are at risk of death.
 
