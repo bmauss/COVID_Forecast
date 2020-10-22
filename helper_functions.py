@@ -7,17 +7,6 @@ import statsmodels.api as sm
 import matplotlib.pyplot as plt
 from matplotlib.pylab import rcParams
 import math
-import tensorflow as tf
-from tensorflow import keras
-from keras import layers
-from keras.utils import Sequence
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.layers import LSTM
-from keras.layers import Dropout
-from keras.layers import *
-from keras.callbacks import EarlyStopping
-from datetime import timedelta
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error as MSE
 from statsmodels.tsa.seasonal import seasonal_decompose
@@ -93,7 +82,7 @@ def train_test(df):
     test = test.asfreq('D')
     return train, test
 
-def preprocess_data(df, column):
+def preprocess_data(df, column, scaler):
     '''
     Input DataFrame and column name
     
@@ -104,8 +93,6 @@ def preprocess_data(df, column):
     Returns: Training, Validation, and Test sets
     '''
     
-    # Instantiate scaler
-    scaler = MinMaxScaler(feature_range=(0, 1))
     # Reset Index
     df = df.reset_index()
     
